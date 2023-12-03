@@ -1,0 +1,48 @@
+#include <Servo.h>
+
+// Constants won't change
+const int BUTTON_PINS[] = {7, 6, 5, 4, 3};   // Arduino pins connected to the buttons
+const int SERVO_PINS[] = {9, 10, 11, 12, 13}; // Arduino pins connected to the servo motors
+
+Servo servos[5]; // Array of servo objects to control five servos
+
+// Variables will change:
+int angles[] = {0, 0, 0, 0, 0};            // Current angles of servo motors
+int lastButtonStates[5] = {HIGH, HIGH, HIGH, HIGH, HIGH};    // Previous states of buttons
+int currentButtonStates[5] = {HIGH, HIGH, HIGH, HIGH, HIGH}; // Current states of buttons
+bool servoActivated[5] = {false, false, false, false, false}; // Flag to track servo activation
+
+void setup() {
+  Serial.begin(9600); // Initialize serial
+
+  for (int i = 0; i < 5; i++) {
+    pinMode(BUTTON_PINS[i], INPUT_PULLUP); // Set Arduino pins to input pull-up mode for buttons
+    servos[i].attach(SERVO_PINS[i]);       // Attach the servo on each pin to the corresponding servo object
+    servos[i].write(angles[i]);            // Initialize servo angles
+    currentButtonStates[i] = digitalRead(BUTTON_PINS[i]); // Read initial button states
+  }
+}
+
+void loop() {
+  for (int i = 0; i < 5; i++) {
+    lastButtonStates[i] = currentButtonStates[i];      // Save the last state
+    currentButtonStates[i] = digitalRead(BUTTON_PINS[i]); // Read new state
+
+    if (!servoActivated[i] && lastButtonStates[i] != currentButtonStates[i] && currentButtonStates[i] == HIGH) {
+      // Button has been pressed, and the servo is not activated yet
+      if (i == 2 || i == 3) { // Check if the servo is connected to button pins 5 or 4
+        angles[i] = (angles[i] == 0) ? 90 : 0; // Set angle to 90 or 0 degrees
+      } else if (i == 4) { // Check if the servo is connected to button pin 3
+        angles[i] = (angles[i] == 0) ? 90 : 0; // Set angle to 90 or 0 degrees
+      } else {
+        angles[i] = (angles[i] == 0) ? 180 : 0; // Set angle to 180 or 0 degrees
+      }
+      // Control servo motor according to the angle
+      servos[i].write(angles[i]);
+      servoActivated[i] = true; // Set the flag to indicate servo activation
+    }
+  }
+}
+
+
+
